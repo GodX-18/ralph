@@ -38,6 +38,7 @@ function App() {
   const [error, setError] = useState("");
   const [inputText, setInputText] = useState("");
   const [lang, setLang] = useState("en");
+  const [hotkey, setHotkey] = useState("CmdOrCtrl+Shift+P");
 
   useEffect(() => {
     const unlisten = listen("hotkey-triggered", async () => {
@@ -62,6 +63,7 @@ function App() {
     try {
       const config = await invoke<AppConfig>("read_config");
       setLang(config.lang || "en");
+      setHotkey(config.hotkey || "CmdOrCtrl+Shift+P");
       await invoke("register_hotkey", { hotkey: config.hotkey });
     } catch (e) {
       console.error("Failed to load config:", e);
@@ -226,7 +228,7 @@ function App() {
               </button>
               {error && <div className="error-message">{error}</div>}
               <p className="hint">
-                {t("orPress", lang)} <kbd>Cmd/Ctrl+Shift+P</kbd> {t("toUseClipboard", lang)}
+                {t("orPress", lang)} <kbd>{hotkey.replace("CmdOrCtrl", "Cmd/Ctrl")}</kbd> {t("toUseClipboard", lang)}
               </p>
             </div>
           </main>
