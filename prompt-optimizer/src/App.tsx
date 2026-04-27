@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ResultModal } from "./components/ResultModal";
 import { Settings } from "./components/Settings";
+import { History } from "./components/History";
 import "./App.css";
 
 interface AppConfig {
@@ -17,8 +18,17 @@ interface AppConfig {
   theme: string;
 }
 
+interface HistoryEntry {
+  id: number;
+  timestamp: string;
+  original: string;
+  optimized: string;
+}
+
+type View = "main" | "settings" | "history";
+
 function App() {
-  const [view, setView] = useState<"main" | "settings">("main");
+  const [view, setView] = useState<View>("main");
   const [isLoading, setIsLoading] = useState(false);
   const [originalText, setOriginalText] = useState("");
   const [optimizedText, setOptimizedText] = useState("");
@@ -53,7 +63,6 @@ function App() {
     setError("");
 
     try {
-      // Use input text if available, otherwise fall back to clipboard
       const textToOptimize = inputText.trim() || await invoke<string>("get_clipboard_text");
 
       if (!textToOptimize || textToOptimize.trim() === "") {
@@ -73,7 +82,6 @@ function App() {
       let optimized: string = "";
 
       if (provider === "deepseek") {
-        // DeepSeek uses OpenAI-compatible API
         response = await fetch(`${endpoint}/chat/completions`, {
           method: "POST",
           headers: {
@@ -93,7 +101,6 @@ function App() {
         const data = await response.json();
         optimized = data.choices[0]?.message?.content || "";
       } else if (provider === "minimax") {
-        // MiniMax API format
         response = await fetch(`${endpoint}/text/chatcompletion_v2`, {
           method: "POST",
           headers: {
@@ -111,10 +118,8 @@ function App() {
         }
 
         const data = await response.json();
-        // MiniMax returns: data.choices[0].messages[0].text
         optimized = data.choices?.[0]?.messages?.[0]?.text || "";
       } else {
-        // OpenAI and compatible APIs (Claude via OpenAI-compatible endpoint, Ollama)
         response = await fetch(`${endpoint}/chat/completions`, {
           method: "POST",
           headers: {
@@ -134,6 +139,9 @@ function App() {
         const data = await response.json();
         optimized = data.choices[0]?.message?.content || "";
       }
+
+      // Save to history
+      await invoke("add_history_entry", { original: textToOptimize, optimized });
 
       setOptimizedText(optimized);
       setShowModal(true);
@@ -159,15 +167,28 @@ function App() {
     await window.hide();
   };
 
+  const handleSelectHistory = (entry: HistoryEntry) => {
+    setInputText(entry.original);
+    setOptimizedText(entry.optimized);
+    setOriginalText(entry.original);
+    setShowModal(true);
+    setView("main");
+  };
+
   return (
     <div className="app">
       {view === "settings" ? (
         <Settings onBack={() => setView("main")} />
+      ) : view === "history" ? (
+        <History onBack={() => setView("main")} onSelect={handleSelectHistory} />
       ) : (
         <div className="main-view">
           <header className="app-header">
             <h1>Prompt Optimizer</h1>
             <div className="header-actions">
+              <button className="history-btn" onClick={() => setView("history")}>
+                History
+              </button>
               <button className="settings-btn" onClick={() => setView("settings")}>
                 Settings
               </button>
