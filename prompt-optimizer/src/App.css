@@ -465,9 +465,58 @@ button {
   cursor: not-allowed;
 }
 
+.test-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+}
+
+.test-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.test-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
 .message {
   font-size: 0.875rem;
   color: #0066cc;
+}
+
+.test-result {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.test-result.success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.test-result.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+@media (prefers-color-scheme: dark) {
+  .test-result.success {
+    background: #1a2a1a;
+    border-color: #2a4a2a;
+    color: #6c8;
+  }
+
+  .test-result.error {
+    background: #2a1a1a;
+    border-color: #4a2a2a;
+    color: #f88;
+  }
 }
 
 .loading {

@@ -22,7 +22,9 @@ export function Settings({ onBack }: SettingsProps) {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [message, setMessage] = useState("");
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     loadConfig();
@@ -52,6 +54,107 @@ export function Settings({ onBack }: SettingsProps) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const testConnection = async () => {
+    if (!config) return;
+    setTesting(true);
+    setTestResult(null);
+
+    const { provider, api_key, endpoint, model } = config.ai;
+
+    if (!api_key && provider !== "ollama") {
+      setTestResult({ success: false, message: "API key is required" });
+      setTesting(false);
+      return;
+    }
+
+    const testPrompt = "Say 'OK' if you can hear me.";
+    let success = false;
+    let resultMessage = "";
+
+    try {
+      if (provider === "deepseek") {
+        const response = await fetch(`${endpoint}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${api_key}`,
+          },
+          body: JSON.stringify({
+            model: model || "deepseek-chat",
+            messages: [{ role: "user", content: testPrompt }],
+          }),
+        });
+
+        if (response.ok) {
+          success = true;
+          resultMessage = "Connection successful!";
+        } else {
+          resultMessage = `API error: ${response.status}`;
+        }
+      } else if (provider === "minimax") {
+        const response = await fetch(`${endpoint}/text/chatcompletion_v2`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${api_key}`,
+          },
+          body: JSON.stringify({
+            model: model || "MiniMax-Text-01",
+            messages: [{ role: "user", content: testPrompt }],
+          }),
+        });
+
+        if (response.ok) {
+          success = true;
+          resultMessage = "Connection successful!";
+        } else {
+          resultMessage = `API error: ${response.status}`;
+        }
+      } else if (provider === "ollama") {
+        const response = await fetch(`${endpoint}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: model || "llama3",
+            messages: [{ role: "user", content: testPrompt }],
+          }),
+        });
+
+        if (response.ok) {
+          success = true;
+          resultMessage = "Connection successful!";
+        } else {
+          resultMessage = `API error: ${response.status}`;
+        }
+      } else {
+        // OpenAI and Claude (OpenAI-compatible)
+        const response = await fetch(`${endpoint}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${api_key}`,
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: testPrompt }],
+          }),
+        });
+
+        if (response.ok) {
+          success = true;
+          resultMessage = "Connection successful!";
+        } else {
+          resultMessage = `API error: ${response.status}`;
+        }
+      }
+    } catch (e) {
+      resultMessage = `Connection failed: ${e}`;
+    }
+
+    setTestResult({ success, message: resultMessage });
+    setTesting(false);
   };
 
   const updateAI = (field: keyof AIConfig, value: string) => {
@@ -148,6 +251,13 @@ export function Settings({ onBack }: SettingsProps) {
 
       <div className="settings-actions">
         <button
+          className="test-btn"
+          onClick={testConnection}
+          disabled={testing}
+        >
+          {testing ? "Testing..." : "Test Connection"}
+        </button>
+        <button
           className="save-btn"
           onClick={saveConfig}
           disabled={saving}
@@ -156,6 +266,12 @@ export function Settings({ onBack }: SettingsProps) {
         </button>
         {message && <span className="message">{message}</span>}
       </div>
+
+      {testResult && (
+        <div className={`test-result ${testResult.success ? "success" : "error"}`}>
+          {testResult.message}
+        </div>
+      )}
     </div>
   );
 }
