@@ -52,6 +52,12 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (view === "main") {
+      loadConfig();
+    }
+  }, [view]);
+
   const loadConfig = async () => {
     try {
       const config = await invoke<AppConfig>("read_config");
