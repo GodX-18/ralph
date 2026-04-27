@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { t } from "../locales/i18n";
 
 interface AIConfig {
   provider: string;
@@ -12,13 +13,15 @@ interface AppConfig {
   ai: AIConfig;
   hotkey: string;
   theme: string;
+  lang: string;
 }
 
 interface SettingsProps {
   onBack: () => void;
+  lang: string;
 }
 
-export function Settings({ onBack }: SettingsProps) {
+export function Settings({ onBack, lang }: SettingsProps) {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,7 +58,7 @@ export function Settings({ onBack }: SettingsProps) {
     setMessage("");
     try {
       await invoke("write_config", { config });
-      setMessage("Settings saved!");
+      setMessage(t("settingsSaved", lang));
       setTimeout(() => setMessage(""), 2000);
     } catch (e) {
       setMessage(`Failed: ${e}`);
@@ -215,15 +218,15 @@ export function Settings({ onBack }: SettingsProps) {
   return (
     <div className="settings">
       <div className="settings-header">
-        <button className="back-btn" onClick={onBack}>← Back</button>
-        <h1>Settings</h1>
+        <button className="back-btn" onClick={onBack}>← {t("back", lang)}</button>
+        <h1>{t("settings", lang)}</h1>
       </div>
 
       <section className="settings-section">
-        <h2>AI Configuration</h2>
+        <h2>{t("aiConfiguration", lang)}</h2>
 
         <div className="form-group">
-          <label htmlFor="provider">Provider</label>
+          <label htmlFor="provider">{t("provider", lang)}</label>
           <select
             id="provider"
             value={config.ai.provider}
@@ -238,49 +241,49 @@ export function Settings({ onBack }: SettingsProps) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="api_key">API Key</label>
+          <label htmlFor="api_key">{t("apiKey", lang)}</label>
           <input
             id="api_key"
             type="password"
             value={config.ai.api_key}
             onChange={(e) => updateAI("api_key", e.target.value)}
-            placeholder="Enter your API key"
+            placeholder={t("enterApiKey", lang)}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="endpoint">Endpoint</label>
+          <label htmlFor="endpoint">{t("endpoint", lang)}</label>
           <input
             id="endpoint"
             type="text"
             value={config.ai.endpoint}
             onChange={(e) => updateAI("endpoint", e.target.value)}
-            placeholder="https://api.openai.com/v1"
+            placeholder={t("endpointPlaceholder", lang)}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="model">Model</label>
+          <label htmlFor="model">{t("model", lang)}</label>
           <input
             id="model"
             type="text"
             value={config.ai.model}
             onChange={(e) => updateAI("model", e.target.value)}
-            placeholder="gpt-4"
+            placeholder={t("modelPlaceholder", lang)}
           />
         </div>
       </section>
 
       <section className="settings-section">
-        <h2>Hotkey</h2>
+        <h2>{t("hotkey", lang)}</h2>
         <div className="form-group">
-          <label>Global Shortcut</label>
+          <label>{t("globalShortcut", lang)}</label>
           <div className="hotkey-input-container">
             <input
               ref={inputRef}
               type="text"
               className={`hotkey-input ${recording ? "recording" : ""}`}
-              value={recording ? "Press keys..." : config.hotkey}
+              value={recording ? t("pressKeys", lang) : config.hotkey}
               readOnly
               onClick={startRecording}
               onKeyDown={handleKeyDown}
@@ -294,7 +297,22 @@ export function Settings({ onBack }: SettingsProps) {
               </button>
             )}
           </div>
-          <small>Click input then press your hotkey combination</small>
+          <small>{t("clickInputPressHotkey", lang)}</small>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h2>{t("language", lang)}</h2>
+        <div className="form-group">
+          <label htmlFor="lang">{t("selectLanguage", lang)}</label>
+          <select
+            id="lang"
+            value={config.lang}
+            onChange={(e) => setConfig({ ...config, lang: e.target.value })}
+          >
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
         </div>
       </section>
 
@@ -304,14 +322,14 @@ export function Settings({ onBack }: SettingsProps) {
           onClick={testConnection}
           disabled={testing}
         >
-          {testing ? "Testing..." : "Test Connection"}
+          {testing ? t("testing", lang) : t("testConnection", lang)}
         </button>
         <button
           className="save-btn"
           onClick={saveConfig}
           disabled={saving}
         >
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? t("saving", lang) : t("saveSettings", lang)}
         </button>
         {message && <span className="message">{message}</span>}
       </div>

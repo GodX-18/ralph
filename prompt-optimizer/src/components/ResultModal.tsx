@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "../locales/i18n";
 
 interface ResultModalProps {
   isOpen: boolean;
@@ -6,6 +7,7 @@ interface ResultModalProps {
   optimizedText: string;
   onClose: () => void;
   onCopy: () => void;
+  lang: string;
 }
 
 export function ResultModal({
@@ -14,6 +16,7 @@ export function ResultModal({
   optimizedText,
   onClose,
   onCopy,
+  lang,
 }: ResultModalProps) {
   const [copied, setCopied] = useState(false);
 
@@ -29,7 +32,7 @@ export function ResultModal({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Optimization Result</h2>
+          <h2>{t("optimizationResult", lang)}</h2>
           <button className="close-btn" onClick={onClose}>
             ×
           </button>
@@ -38,11 +41,11 @@ export function ResultModal({
         <div className="modal-body">
           <div className="text-comparison">
             <div className="text-section">
-              <h3>Original</h3>
+              <h3>{t("original", lang)}</h3>
               <pre className="text-box">{originalText}</pre>
             </div>
             <div className="text-section">
-              <h3>Optimized</h3>
+              <h3>{t("optimized", lang)}</h3>
               <pre className="text-box optimized">{optimizedText}</pre>
             </div>
           </div>
@@ -50,7 +53,7 @@ export function ResultModal({
 
         <div className="modal-footer">
           <button className="copy-btn" onClick={handleCopy}>
-            {copied ? "Copied!" : "Copy Optimized"}
+            {copied ? t("copied", lang) : t("copyOptimized", lang)}
           </button>
         </div>
       </div>

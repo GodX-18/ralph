@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { t } from "../locales/i18n";
 
 interface HistoryEntry {
   id: number;
@@ -11,9 +12,10 @@ interface HistoryEntry {
 interface HistoryProps {
   onBack: () => void;
   onSelect: (entry: HistoryEntry) => void;
+  lang: string;
 }
 
-export function History({ onBack, onSelect }: HistoryProps) {
+export function History({ onBack, onSelect, lang }: HistoryProps) {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,15 +71,15 @@ export function History({ onBack, onSelect }: HistoryProps) {
   return (
     <div className="history">
       <div className="history-header">
-        <button className="back-btn" onClick={onBack}>← Back</button>
-        <h1>Optimization History</h1>
+        <button className="back-btn" onClick={onBack}>← {t("back", lang)}</button>
+        <h1>{t("optimizationHistory", lang)}</h1>
         {entries.length > 0 && (
-          <button className="clear-btn" onClick={handleClear}>Clear All</button>
+          <button className="clear-btn" onClick={handleClear}>{t("clearAll", lang)}</button>
         )}
       </div>
 
       {entries.length === 0 ? (
-        <div className="empty-state">No optimization history yet</div>
+        <div className="empty-state">{t("noHistory", lang)}</div>
       ) : (
         <div className="history-list">
           {entries.map((entry) => (
@@ -85,17 +87,17 @@ export function History({ onBack, onSelect }: HistoryProps) {
               <div className="history-item-header">
                 <span className="history-time">{formatTime(entry.timestamp)}</span>
                 <div className="history-actions">
-                  <button className="use-btn" onClick={() => onSelect(entry)}>Use</button>
+                  <button className="use-btn" onClick={() => onSelect(entry)}>{t("use", lang)}</button>
                   <button className="delete-btn" onClick={() => handleDelete(entry.id)}>×</button>
                 </div>
               </div>
               <div className="history-content">
                 <div className="history-original">
-                  <label>Original:</label>
+                  <label>{t("original", lang)}:</label>
                   <p>{truncate(entry.original, 100)}</p>
                 </div>
                 <div className="history-optimized">
-                  <label>Optimized:</label>
+                  <label>{t("optimized", lang)}:</label>
                   <p>{truncate(entry.optimized, 100)}</p>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ResultModal } from "./components/ResultModal";
 import { Settings } from "./components/Settings";
 import { History } from "./components/History";
+import { t } from "./locales/i18n";
 import "./App.css";
 
 interface AppConfig {
@@ -16,6 +17,7 @@ interface AppConfig {
   };
   hotkey: string;
   theme: string;
+  lang: string;
 }
 
 interface HistoryEntry {
@@ -35,6 +37,7 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
   const [inputText, setInputText] = useState("");
+  const [lang, setLang] = useState("en");
 
   useEffect(() => {
     const unlisten = listen("hotkey-triggered", async () => {
@@ -42,19 +45,20 @@ function App() {
       await handleOptimize();
     });
 
-    registerHotkey();
+    loadConfig();
 
     return () => {
       unlisten.then((fn) => fn());
     };
   }, []);
 
-  const registerHotkey = async () => {
+  const loadConfig = async () => {
     try {
       const config = await invoke<AppConfig>("read_config");
+      setLang(config.lang || "en");
       await invoke("register_hotkey", { hotkey: config.hotkey });
     } catch (e) {
-      console.error("Failed to register hotkey:", e);
+      console.error("Failed to load config:", e);
     }
   };
 
@@ -66,7 +70,7 @@ function App() {
       const textToOptimize = inputText.trim() || await invoke<string>("get_clipboard_text");
 
       if (!textToOptimize || textToOptimize.trim() === "") {
-        setError("Please enter text or copy something to clipboard");
+        setError(t("pleaseEnterText", lang));
         setIsLoading(false);
         return;
       }
@@ -140,13 +144,12 @@ function App() {
         optimized = data.choices[0]?.message?.content || "";
       }
 
-      // Save to history
       await invoke("add_history_entry", { original: textToOptimize, optimized });
 
       setOptimizedText(optimized);
       setShowModal(true);
     } catch (e) {
-      setError(`Optimization failed: ${e}`);
+      setError(`${t("optimizationFailed", lang)}: ${e}`);
     } finally {
       setIsLoading(false);
     }
@@ -178,34 +181,34 @@ function App() {
   return (
     <div className="app">
       {view === "settings" ? (
-        <Settings onBack={() => setView("main")} />
+        <Settings onBack={() => setView("main")} lang={lang} />
       ) : view === "history" ? (
-        <History onBack={() => setView("main")} onSelect={handleSelectHistory} />
+        <History onBack={() => setView("main")} onSelect={handleSelectHistory} lang={lang} />
       ) : (
         <div className="main-view">
           <header className="app-header">
-            <h1>Prompt Optimizer</h1>
+            <h1>{t("appTitle", lang)}</h1>
             <div className="header-actions">
               <button className="history-btn" onClick={() => setView("history")}>
-                History
+                {t("history", lang)}
               </button>
               <button className="settings-btn" onClick={() => setView("settings")}>
-                Settings
+                {t("settings", lang)}
               </button>
               <button className="minimize-btn" onClick={handleMinimize}>
-                Minimize to Tray
+                {t("minimizeToTray", lang)}
               </button>
             </div>
           </header>
 
           <main className="app-main">
             <div className="optimizer-container">
-              <h2>Enter your prompt</h2>
+              <h2>{t("enterPrompt", lang)}</h2>
               <textarea
                 className="prompt-input"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Paste your prompt here..."
+                placeholder={t("pastePrompt", lang)}
                 rows={6}
               />
               <button
@@ -213,11 +216,11 @@ function App() {
                 onClick={handleOptimize}
                 disabled={isLoading}
               >
-                {isLoading ? "Optimizing..." : "Optimize"}
+                {isLoading ? t("optimizing", lang) : t("optimize", lang)}
               </button>
               {error && <div className="error-message">{error}</div>}
               <p className="hint">
-                Or press <kbd>Cmd/Ctrl+Shift+P</kbd> to use clipboard content
+                {t("orPress", lang)} <kbd>Cmd/Ctrl+Shift+P</kbd> {t("toUseClipboard", lang)}
               </p>
             </div>
           </main>
@@ -230,6 +233,7 @@ function App() {
         optimizedText={optimizedText}
         onClose={handleCloseModal}
         onCopy={handleCopy}
+        lang={lang}
       />
     </div>
   );

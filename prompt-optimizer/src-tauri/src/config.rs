@@ -15,6 +15,7 @@ pub struct AppConfig {
     pub ai: AIConfig,
     pub hotkey: String,
     pub theme: String,
+    pub lang: String,
 }
 
 impl Default for AppConfig {
@@ -28,6 +29,7 @@ impl Default for AppConfig {
             },
             hotkey: "CmdOrCtrl+Shift+P".to_string(),
             theme: "system".to_string(),
+            lang: "en".to_string(),
         }
     }
 }
