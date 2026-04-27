@@ -14,7 +14,11 @@ interface AppConfig {
   theme: string;
 }
 
-export function Settings() {
+interface SettingsProps {
+  onBack: () => void;
+}
+
+export function Settings({ onBack }: SettingsProps) {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,7 +72,10 @@ export function Settings() {
 
   return (
     <div className="settings">
-      <h1>Settings</h1>
+      <div className="settings-header">
+        <button className="back-btn" onClick={onBack}>← Back</button>
+        <h1>Settings</h1>
+      </div>
 
       <section className="settings-section">
         <h2>AI Configuration</h2>

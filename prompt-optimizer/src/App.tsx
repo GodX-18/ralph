@@ -159,7 +159,7 @@ function App() {
   return (
     <div className="app">
       {view === "settings" ? (
-        <Settings />
+        <Settings onBack={() => setView("main")} />
       ) : (
         <div className="main-view">
           <header className="app-header">
