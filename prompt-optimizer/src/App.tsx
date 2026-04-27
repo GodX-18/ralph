@@ -187,7 +187,7 @@ function App() {
   return (
     <div className="app">
       {view === "settings" ? (
-        <Settings onBack={() => setView("main")} lang={lang} />
+        <Settings onBack={() => setView("main")} />
       ) : view === "history" ? (
         <History onBack={() => setView("main")} onSelect={handleSelectHistory} lang={lang} />
       ) : (
