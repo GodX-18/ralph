@@ -82,6 +82,8 @@ export function Settings() {
           >
             <option value="openai">OpenAI</option>
             <option value="claude">Claude</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="minimax">MiniMax</option>
             <option value="ollama">Ollama (Local)</option>
           </select>
         </div>

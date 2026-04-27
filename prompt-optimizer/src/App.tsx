@@ -62,30 +62,75 @@ function App() {
       setOriginalText(clipboardText);
 
       const config = await invoke<AppConfig>("read_config");
+      const { provider, api_key, endpoint, model } = config.ai;
 
-      const response = await fetch(`${config.ai.endpoint}/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${config.ai.api_key}`,
-        },
-        body: JSON.stringify({
-          model: config.ai.model,
-          messages: [
-            {
-              role: "user",
-              content: `Optimize the following prompt to make it more effective for AI interaction. Only return the optimized prompt, no explanations.\n\nOriginal prompt:\n${clipboardText}`,
-            },
-          ],
-        }),
-      });
+      const prompt = `Optimize the following prompt to make it more effective for AI interaction. Only return the optimized prompt, no explanations.\n\nOriginal prompt:\n${clipboardText}`;
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+      let response: Response;
+      let optimized: string = "";
+
+      if (provider === "deepseek") {
+        // DeepSeek uses OpenAI-compatible API
+        response = await fetch(`${endpoint}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${api_key}`,
+          },
+          body: JSON.stringify({
+            model: model || "deepseek-chat",
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        optimized = data.choices[0]?.message?.content || "";
+      } else if (provider === "minimax") {
+        // MiniMax API format
+        response = await fetch(`${endpoint}/text/chatcompletion_v2`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${api_key}`,
+          },
+          body: JSON.stringify({
+            model: model || "MiniMax-Text-01",
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // MiniMax returns: data.choices[0].messages[0].text
+        optimized = data.choices?.[0]?.messages?.[0]?.text || "";
+      } else {
+        // OpenAI and compatible APIs (Claude via OpenAI-compatible endpoint, Ollama)
+        response = await fetch(`${endpoint}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${api_key}`,
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        optimized = data.choices[0]?.message?.content || "";
       }
-
-      const data = await response.json();
-      const optimized = data.choices[0]?.message?.content || "";
 
       setOptimizedText(optimized);
       setShowModal(true);
