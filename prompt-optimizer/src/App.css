@@ -529,6 +529,60 @@ button {
   }
 }
 
+/* Hotkey Input */
+.hotkey-input-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hotkey-input {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  font-family: monospace;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  color: inherit;
+  cursor: pointer;
+}
+
+.hotkey-input:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.hotkey-input.recording {
+  border-color: #0066cc;
+  background: #f0f9ff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hotkey-input {
+    background: #333;
+    border-color: #444;
+    color: #e5e5e5;
+  }
+
+  .hotkey-input.recording {
+    background: #1a2a3a;
+    border-color: #339;
+  }
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: inherit;
+  padding: 0.5rem 1rem;
+}
+
+.cancel-btn:hover {
+  background: #fee;
+  border-color: #fcc;
+  color: #c00;
+}
+
 /* History */
 .history {
   padding: 2rem;

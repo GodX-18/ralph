@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 interface AIConfig {
@@ -25,10 +25,18 @@ export function Settings({ onBack }: SettingsProps) {
   const [testing, setTesting] = useState(false);
   const [message, setMessage] = useState("");
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [recording, setRecording] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadConfig();
   }, []);
+
+  useEffect(() => {
+    if (recording && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [recording]);
 
   const loadConfig = async () => {
     try {
@@ -129,7 +137,6 @@ export function Settings({ onBack }: SettingsProps) {
           resultMessage = `API error: ${response.status}`;
         }
       } else {
-        // OpenAI and Claude (OpenAI-compatible)
         const response = await fetch(`${endpoint}/chat/completions`, {
           method: "POST",
           headers: {
@@ -163,6 +170,38 @@ export function Settings({ onBack }: SettingsProps) {
       ...config,
       ai: { ...config.ai, [field]: value },
     });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    e.preventDefault();
+
+    if (!recording) return;
+
+    const parts: string[] = [];
+    if (e.metaKey || e.ctrlKey) parts.push("CmdOrCtrl");
+    if (e.shiftKey) parts.push("Shift");
+    if (e.altKey) parts.push("Alt");
+
+    const key = e.key;
+    if (key === "Control" || key === "Meta" || key === "Shift" || key === "Alt") {
+      return;
+    }
+
+    if (parts.length === 0) return;
+
+    let displayKey = key.toUpperCase();
+    if (key === " ") displayKey = "Space";
+    else if (key.length === 1) displayKey = key.toUpperCase();
+
+    parts.push(displayKey);
+    const hotkeyStr = parts.join("+");
+
+    setConfig({ ...config!, hotkey: hotkeyStr });
+    setRecording(false);
+  };
+
+  const startRecording = () => {
+    setRecording(true);
   };
 
   if (loading) {
@@ -235,17 +274,27 @@ export function Settings({ onBack }: SettingsProps) {
       <section className="settings-section">
         <h2>Hotkey</h2>
         <div className="form-group">
-          <label htmlFor="hotkey">Global Shortcut</label>
-          <input
-            id="hotkey"
-            type="text"
-            value={config.hotkey}
-            onChange={(e) =>
-              setConfig({ ...config, hotkey: e.target.value })
-            }
-            placeholder="CmdOrCtrl+Shift+P"
-          />
-          <small>Press the hotkey to trigger optimization</small>
+          <label>Global Shortcut</label>
+          <div className="hotkey-input-container">
+            <input
+              ref={inputRef}
+              type="text"
+              className={`hotkey-input ${recording ? "recording" : ""}`}
+              value={recording ? "Press keys..." : config.hotkey}
+              readOnly
+              onClick={startRecording}
+              onKeyDown={handleKeyDown}
+            />
+            {recording && (
+              <button
+                className="cancel-btn"
+                onClick={() => setRecording(false)}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+          <small>Click input then press your hotkey combination</small>
         </div>
       </section>
 
