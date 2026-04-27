@@ -15,7 +15,12 @@ pub struct AppConfig {
     pub ai: AIConfig,
     pub hotkey: String,
     pub theme: String,
+    #[serde(default = "default_lang")]
     pub lang: String,
+}
+
+fn default_lang() -> String {
+    "en".to_string()
 }
 
 impl Default for AppConfig {
@@ -29,7 +34,7 @@ impl Default for AppConfig {
             },
             hotkey: "CmdOrCtrl+Shift+P".to_string(),
             theme: "system".to_string(),
-            lang: "en".to_string(),
+            lang: default_lang(),
         }
     }
 }
