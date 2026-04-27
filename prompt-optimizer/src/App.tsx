@@ -24,6 +24,7 @@ function App() {
   const [optimizedText, setOptimizedText] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
+  const [inputText, setInputText] = useState("");
 
   useEffect(() => {
     const unlisten = listen("hotkey-triggered", async () => {
@@ -52,19 +53,21 @@ function App() {
     setError("");
 
     try {
-      const clipboardText = await invoke<string>("get_clipboard_text");
-      if (!clipboardText || clipboardText.trim() === "") {
-        setError("Clipboard is empty");
+      // Use input text if available, otherwise fall back to clipboard
+      const textToOptimize = inputText.trim() || await invoke<string>("get_clipboard_text");
+
+      if (!textToOptimize || textToOptimize.trim() === "") {
+        setError("Please enter text or copy something to clipboard");
         setIsLoading(false);
         return;
       }
 
-      setOriginalText(clipboardText);
+      setOriginalText(textToOptimize);
 
       const config = await invoke<AppConfig>("read_config");
       const { provider, api_key, endpoint, model } = config.ai;
 
-      const prompt = `Optimize the following prompt to make it more effective for AI interaction. Only return the optimized prompt, no explanations.\n\nOriginal prompt:\n${clipboardText}`;
+      const prompt = `Optimize the following prompt to make it more effective for AI interaction. Only return the optimized prompt, no explanations.\n\nOriginal prompt:\n${textToOptimize}`;
 
       let response: Response;
       let optimized: string = "";
@@ -175,16 +178,26 @@ function App() {
           </header>
 
           <main className="app-main">
-            <div className="hero">
-              <p>Press <kbd>Cmd/Ctrl+Shift+P</kbd> to optimize your clipboard content</p>
+            <div className="optimizer-container">
+              <h2>Enter your prompt</h2>
+              <textarea
+                className="prompt-input"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Paste your prompt here..."
+                rows={6}
+              />
               <button
                 className="optimize-btn"
                 onClick={handleOptimize}
                 disabled={isLoading}
               >
-                {isLoading ? "Optimizing..." : "Optimize Now"}
+                {isLoading ? "Optimizing..." : "Optimize"}
               </button>
               {error && <div className="error-message">{error}</div>}
+              <p className="hint">
+                Or press <kbd>Cmd/Ctrl+Shift+P</kbd> to use clipboard content
+              </p>
             </div>
           </main>
         </div>
