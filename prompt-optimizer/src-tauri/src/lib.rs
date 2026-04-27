@@ -7,10 +7,12 @@ use tauri::{
 mod clipboard;
 mod config;
 mod hotkey;
+mod history;
 
 pub use clipboard::*;
 pub use config::*;
 pub use hotkey::*;
+pub use history::*;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -86,6 +88,11 @@ pub fn run() {
             write_config,
             register_hotkey,
             unregister_hotkey,
+            load_history,
+            add_history_entry,
+            delete_history_entry,
+            clear_history,
+            build_optimize_prompt,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

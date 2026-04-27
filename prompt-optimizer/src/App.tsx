@@ -88,7 +88,7 @@ function App() {
       const config = await invoke<AppConfig>("read_config");
       const { provider, api_key, endpoint, model } = config.ai;
 
-      const prompt = `Optimize the following prompt to make it more effective for AI interaction. Only return the optimized prompt, no explanations.\n\nOriginal prompt:\n${textToOptimize}`;
+      const prompt = await invoke<string>("build_optimize_prompt", { prompt: textToOptimize });
 
       let response: Response;
       let optimized: string = "";

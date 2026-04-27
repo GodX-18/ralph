@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { t } from "../locales/i18n";
 
 interface ResultModalProps {
@@ -46,7 +47,9 @@ export function ResultModal({
             </div>
             <div className="text-section">
               <h3>{t("optimized", lang)}</h3>
-              <pre className="text-box optimized">{optimizedText}</pre>
+              <div className="text-box optimized markdown-body">
+                <ReactMarkdown>{optimizedText}</ReactMarkdown>
+              </div>
             </div>
           </div>
         </div>
